@@ -4,13 +4,16 @@
 mod endpoints;
 mod version;
 
-use crate::endpoints::updates_stable;
+use crate::endpoints::{forward, updates_stable};
 use crate::version::{Platform, Version};
 use enum_map::{enum_map, EnumMap};
+use hickory_resolver::config::{ResolverConfig, ResolverOpts};
+use hickory_resolver::TokioAsyncResolver;
 use once_cell::unsync::Lazy;
 use std::collections::HashMap;
-use std::time::SystemTime;
-use warp::http::Response;
+use std::net::SocketAddr;
+use std::str::FromStr;
+use std::sync::Arc;
 use warp::Filter;
 
 const OSX_VERSION: Version = Version::new(0, 0, 291);
@@ -32,6 +35,17 @@ const VERSION_MAP: Lazy<EnumMap<Platform, (Version, &'static str)>> = Lazy::new(
 async fn main() {
     pretty_env_logger::init();
 
+    // Get discord.com's real IP, ignoring the contents of /etc/hosts
+    let resolver = TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default());
+
+    let mut response = resolver.lookup_ip("www.discord.com.").await.unwrap();
+
+    // Collect IPs and wrap them in an Arc so we don't have to copy for each request
+    let addresses = Arc::new(response
+        .iter()
+        .map(|ip| SocketAddr::new(ip, 443))
+        .collect::<Vec<SocketAddr>>());
+
     let updates_stable = warp::path!("api" / "updates" / "stable")
         .and(warp::query::<HashMap<String, String>>())
         .map(updates_stable);
@@ -40,15 +54,8 @@ async fn main() {
     let routes = warp::any()
         .and(warp::path::full()) // Extract the full path
         .and(warp::query::<HashMap<String, String>>())
-        .map(|path: warp::path::FullPath, p: HashMap<String, String>| {
-            // Access the path using path.as_str()
-            println!("{} {:?}", path.as_str(), p);
-            Response::builder()
-                .status(404)
-                .header("Date", httpdate::fmt_http_date(SystemTime::now()))
-                .header("Content-Type", "application/json")
-                .body(String::from(r#"{"message": "404: Not Found", "code": 0}"#))
-        });
+        .and(warp::any().map(move || addresses.clone()))
+        .and_then(forward);
 
     warp::serve(warp::get().and(updates_stable).or(routes))
         .tls()
