@@ -1,8 +1,10 @@
 #![feature(const_for)]
 #![feature(const_mut_refs)]
 
+mod endpoints;
 mod version;
 
+use crate::endpoints::updates_stable;
 use crate::version::{Platform, Version};
 use enum_map::{enum_map, EnumMap};
 use once_cell::unsync::Lazy;
@@ -30,6 +32,10 @@ const VERSION_MAP: Lazy<EnumMap<Platform, (Version, &'static str)>> = Lazy::new(
 async fn main() {
     pretty_env_logger::init();
 
+    let updates_stable = warp::path!("api" / "updates" / "stable")
+        .and(warp::query::<HashMap<String, String>>())
+        .map(updates_stable);
+
     // Match any request and return hello world!
     let routes = warp::any()
         .and(warp::path::full()) // Extract the full path
@@ -44,7 +50,7 @@ async fn main() {
                 .body(String::from(r#"{"message": "404: Not Found", "code": 0}"#))
         });
 
-    warp::serve(warp::get().or(routes))
+    warp::serve(warp::get().and(updates_stable).or(routes))
         .tls()
         .cert_path("certs/cert.pem")
         .key_path("certs/key.pem")
