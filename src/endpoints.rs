@@ -1,5 +1,6 @@
 use crate::version::{Platform, Version};
 use crate::VERSION_MAP;
+use log::{debug, warn};
 use reqwest::ClientBuilder;
 use std::collections::HashMap;
 use std::convert::Infallible;
@@ -7,7 +8,6 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::SystemTime;
 use warp::http::Response;
-use log::{debug, warn};
 
 pub async fn forward(
     path: warp::path::FullPath,
@@ -73,19 +73,24 @@ pub async fn forward(
 pub fn updates_stable(p: HashMap<String, String>) -> warp::http::Result<Response<String>> {
     let builder = Response::builder().header("Date", httpdate::fmt_http_date(SystemTime::now()));
 
+    // Get version parameter
     let version = p
         .get("version")
         .and_then(|v| v.parse::<Version>().ok())
         .unwrap_or_default();
 
+    // Get platform parameter (defaults to osx for some reason)
     let res = if let Ok(platform) = p
         .get("platform")
         .map(|p| p.clone())
         .unwrap_or(String::from("osx"))
         .parse::<Platform>()
     {
+        // Get latest released version and when it was released
         let (latest_version, pub_date) = VERSION_MAP[platform].clone();
+        // Client is outdated
         if version < latest_version {
+            // url and notes are only sent for osx (what is it with osx)
             let extra_json = if platform == Platform::OsX {
                 format!(
                     r#", "url": "https://dl.discordapp.net/apps/osx/{latest_version}/Discord.zip", "notes": """#
@@ -93,24 +98,26 @@ pub fn updates_stable(p: HashMap<String, String>) -> warp::http::Result<Response
             } else {
                 String::new()
             };
+            // Return version info
             builder
                 .header("Content-Type", "application/json")
                 .body(format!(
                     r#"{{"name": "{latest_version}", "pub_date": "{pub_date}"{extra_json}}}\n"#
                 ))
         } else {
+            // Client is up-to-date
             builder
                 .status(204)
                 .header("Content-Type", "text/html; charset=utf-8")
                 .body(String::new())
         }
     } else {
+        // Unknown platform
         builder
             .status(404)
             .header("Content-Type", "application/json")
             .body(String::from(r#"{"message": "404: Not Found", "code": 0}"#))
     };
 
-    println!("{:?}", res);
     res
 }

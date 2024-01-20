@@ -19,6 +19,7 @@ use warp::Filter;
 const OSX_VERSION: Version = Version::new(0, 0, 291);
 const OSX_PUB_DATE: &'static str = "2024-01-09T18:25:05";
 const WIN_VERSION: Version = Version::new(0, 0, 311);
+// This seems wrong, maybe they are using a different name for windows now, or maybe they're just lazy
 const WIN_PUB_DATE: &'static str = "2021-09-22T18:16:06";
 const LINUX_VERSION: Version = Version::new(0, 0, 40);
 const LINUX_PUB_DATE: &'static str = "2024-01-09T18:23:17";
@@ -41,10 +42,12 @@ async fn main() {
     let mut response = resolver.lookup_ip("www.discord.com.").await.unwrap();
 
     // Collect IPs and wrap them in an Arc so we don't have to copy for each request
-    let addresses = Arc::new(response
-        .iter()
-        .map(|ip| SocketAddr::new(ip, 443))
-        .collect::<Vec<SocketAddr>>());
+    let addresses = Arc::new(
+        response
+            .iter()
+            .map(|ip| SocketAddr::new(ip, 443))
+            .collect::<Vec<SocketAddr>>(),
+    );
 
     let updates_stable = warp::path!("api" / "updates" / "stable")
         .and(warp::query::<HashMap<String, String>>())
