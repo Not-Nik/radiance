@@ -15,7 +15,9 @@ Add the following to `/etc/hosts`:
 Flush your DNS cache, if applicable. Generate a certificate in `certs` with this command:
 
 ```
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes -subj '/CN=discord.com'
+openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 \
+        -nodes -keyout key.pem -out cert.pem -subj "/CN=discord.com" \
+        -addext "subjectAltName=DNS:discord.com,DNS:*.discord.com,IP:127.0.0.1"
 ```
 
 Add the certificate to your trusted certificates:
