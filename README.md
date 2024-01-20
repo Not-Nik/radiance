@@ -22,4 +22,7 @@ openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 \
 
 Add the certificate to your trusted certificates:
 
- - [MacOS](https://support.apple.com/en-au/guide/keychain-access/kyca8916/mac)
+ - MacOS:
+```
+sudo security add-trusted-cert -d -p ssl -p basic -k /Library/Keychains/System.keychain cert.pem
+```
