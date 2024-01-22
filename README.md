@@ -2,6 +2,10 @@
 
 Custom discord server implementation
 
+## Read about it
+
+- [Part 1](https://notnik.cc/posts/discord-part1/)
+
 ## Setup
 
 ### Local testing
