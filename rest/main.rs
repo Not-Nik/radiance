@@ -4,9 +4,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-#![feature(const_for)]
-#![feature(const_mut_refs)]
-
 mod endpoints;
 mod version;
 
@@ -18,17 +15,16 @@ use hickory_resolver::TokioAsyncResolver;
 use once_cell::unsync::Lazy;
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::str::FromStr;
 use std::sync::Arc;
 use warp::Filter;
 
-const OSX_VERSION: Version = Version::new(0, 0, 291);
-const OSX_PUB_DATE: &'static str = "2024-01-09T18:25:05";
+const OSX_VERSION: Version = Version::new(0, 0, 293);
+const OSX_PUB_DATE: &'static str = "2024-01-29T19:58:18";
 const WIN_VERSION: Version = Version::new(0, 0, 311);
 // This seems wrong, maybe they are using a different name for windows now, or maybe they're just lazy
 const WIN_PUB_DATE: &'static str = "2021-09-22T18:16:06";
-const LINUX_VERSION: Version = Version::new(0, 0, 40);
-const LINUX_PUB_DATE: &'static str = "2024-01-09T18:23:17";
+const LINUX_VERSION: Version = Version::new(0, 0, 42);
+const LINUX_PUB_DATE: &'static str = "2024-01-29T19:49:27";
 
 const VERSION_MAP: Lazy<EnumMap<Platform, (Version, &'static str)>> = Lazy::new(|| {
     enum_map! {
@@ -45,9 +41,9 @@ async fn main() {
     // Get discord.com's real IP, ignoring the contents of /etc/hosts
     let resolver = TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default());
 
-    let mut response = resolver.lookup_ip("www.discord.com.").await.unwrap();
+    let response = resolver.lookup_ip("www.discord.com.").await.unwrap();
 
-    // Collect IPs and wrap them in an Arc so we don't have to copy for each request
+    // Collect IPs and wrap them in an Arc, so we don't have to copy for each request
     let addresses = Arc::new(
         response
             .iter()
