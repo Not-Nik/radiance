@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-use crate::events::{Identify, PresenceUpdate, RadianceEvent, VoiceStateUpdate};
+use crate::events::{Identify, PresenceUpdate, RadianceEvent, Resume, VoiceStateUpdate};
 use serde::de::value::U8Deserializer;
 use serde::de::{
     DeserializeSeed, Error, IgnoredAny, IntoDeserializer, MapAccess, Unexpected, Visitor,
@@ -309,7 +309,13 @@ impl<'de> Visitor<'de> for EventVisitor<'_> {
                     VALID_OPCODES,
                 ))
             }
-            OpCode::Resume => return Err(V::Error::unknown_variant("Resume", VALID_OPCODES)),
+            OpCode::Resume => {
+                let resume = Self::field::<Resume, _>(&mut map, Field::D)?;
+
+                Self::ignore_all(&mut map)?;
+
+                RadianceEvent::Resume(resume)
+            }
             OpCode::PresenceUpdate => {
                 let update = Self::field::<PresenceUpdate, _>(&mut map, Field::D)?;
 

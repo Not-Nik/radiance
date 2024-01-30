@@ -9,12 +9,14 @@ pub mod models;
 mod presence_update;
 mod ready;
 mod ready_supplemental;
+mod resume;
 mod voice_state_update;
 
 pub use identify::*;
 pub use presence_update::*;
 pub use ready::*;
 pub use ready_supplemental::*;
+pub use resume::*;
 pub use voice_state_update::*;
 
 use models::Session;
@@ -30,6 +32,7 @@ pub enum RadianceEvent {
     PresenceUpdate(PresenceUpdate),
     Ready(Ready),
     ReadySupplemental(ReadySupplemental),
+    Resume(Resume),
     SessionsReplace(Vec<Session>),
     Twilight(Event),
     VoiceStateUpdate(VoiceStateUpdate),

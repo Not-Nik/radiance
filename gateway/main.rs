@@ -81,8 +81,19 @@ async fn failing_gateway(mut connection: GatewayConnection) -> Result<(), Gatewa
 
     debug!("Sent hello");
 
-    let RadianceEvent::Identify(identify) = connection.read_event().await? else {
-        return Err(GatewayError::UnexpectedPayload);
+    let identify = match connection.read_event().await? {
+        RadianceEvent::Identify(identify) => identify,
+        RadianceEvent::Resume(_) => {
+            let invalid_session = Event::GatewayInvalidateSession(false);
+
+            connection
+                .send_event(invalid_session.into_payload(&mut sequence))
+                .await?;
+            return Ok(());
+        }
+        _ => {
+            return Err(GatewayError::UnexpectedPayload);
+        }
     };
 
     debug!("Received identify");
