@@ -13,6 +13,7 @@ pub use identify::*;
 pub use ready::*;
 pub use ready_supplemental::*;
 
+use models::Session;
 use serde::ser::SerializeStruct;
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -24,6 +25,7 @@ pub enum RadianceEvent {
     Identify(Identify),
     Ready(Ready),
     ReadySupplemental(ReadySupplemental),
+    SessionsReplace(Vec<Session>),
     Twilight(Event),
 }
 
@@ -140,6 +142,7 @@ impl Serialize for EventPayload {
             match &self.d {
                 Some(RadianceEvent::Ready(r)) => state.serialize_field("d", r)?,
                 Some(RadianceEvent::ReadySupplemental(r)) => state.serialize_field("d", r)?,
+                Some(RadianceEvent::SessionsReplace(v)) => state.serialize_field("d", v)?,
                 None => {}
                 _ => unreachable!(),
             }

@@ -196,6 +196,14 @@ async fn failing_gateway(mut connection: GatewayConnection) -> Result<(), Gatewa
 
     debug!("Sent ready supplemental");
 
+    let sessions_replace = vec![session.clone()];
+
+    connection
+        .send_event(sessions_replace.into_payload(&mut sequence))
+        .await?;
+
+    debug!("Sent sessions replace");
+
     loop {
         let event = connection.read_event().await?;
 
