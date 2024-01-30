@@ -36,6 +36,17 @@ pub struct EventPayload {
     t: Option<String>,
 }
 
+impl EventPayload {
+    pub fn heartbeat_ack() -> EventPayload {
+        EventPayload {
+            op: OpCode::HeartbeatAck,
+            d: None,
+            s: None,
+            t: None,
+        }
+    }
+}
+
 pub trait IntoPayload {
     fn into_payload(self, s: &mut u32) -> EventPayload;
 }

@@ -19,7 +19,7 @@ use crate::events::models::{
     Authentication, ClientInfo, Consent, MergedPresences, NotificationSettings, Personalization,
     ReadState, Session, Status, User, UserGuildSettings,
 };
-use crate::events::{IntoPayload, RadianceEvent, Ready, ReadySupplemental};
+use crate::events::{EventPayload, IntoPayload, RadianceEvent, Ready, ReadySupplemental};
 use log::debug;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -195,6 +195,20 @@ async fn failing_gateway(mut connection: GatewayConnection) -> Result<(), Gatewa
         .await?;
 
     debug!("Sent ready supplemental");
+
+    loop {
+        let event = connection.read_event().await?;
+
+        match event {
+            RadianceEvent::Twilight(Event::GatewayHeartbeat(_)) => {
+                connection.send_event(EventPayload::heartbeat_ack()).await?;
+                debug!("Heartbeat");
+            }
+            _ => {
+                debug!("{:?}", event);
+            }
+        };
+    }
 
     Ok(())
 }
