@@ -4,13 +4,23 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-mod encoding;
+#![feature(async_closure)]
 
+mod connection;
+mod encoding;
+mod error;
+mod events;
+
+use crate::connection::GatewayConnection;
+use crate::encoding::Encoding;
+use crate::error::GatewayError;
+use crate::events::IntoPayload;
+use log::debug;
 use std::collections::HashMap;
 use std::str::FromStr;
-use log::debug;
+use twilight_model::gateway::event::Event;
+use twilight_model::gateway::payload::incoming::Hello;
 use warp::Filter;
-use crate::encoding::Encoding;
 
 #[tokio::main]
 async fn main() {
@@ -43,5 +53,27 @@ pub async fn gateway(ws: warp::ws::WebSocket, p: HashMap<String, String>) {
         .map(|s| Encoding::from_str(&*s))
     {
         debug!("Opening WebSocket ({encoding}, zlib: {zlib})");
+
+        let connection = GatewayConnection::new(ws, encoding, zlib);
+
+        let res = failing_gateway(connection).await;
+        res.unwrap();
     }
+}
+
+async fn failing_gateway(mut connection: GatewayConnection) -> Result<(), GatewayError> {
+    let mut sequence = 0;
+
+    // fixme: should the interval be dynamically chosen?
+    let hello = Event::GatewayHello(Hello {
+        heartbeat_interval: 41250,
+    });
+
+    connection
+        .send_event(hello.into_payload(&mut sequence))
+        .await?;
+
+    debug!("Sent hello");
+
+    Ok(())
 }
