@@ -6,11 +6,13 @@
 
 mod identify;
 pub mod models;
+mod presence_update;
 mod ready;
 mod ready_supplemental;
 mod voice_state_update;
 
 pub use identify::*;
+pub use presence_update::*;
 pub use ready::*;
 pub use ready_supplemental::*;
 pub use voice_state_update::*;
@@ -25,6 +27,7 @@ use twilight_model::gateway::OpCode;
 #[derive(Clone, Debug, PartialEq)]
 pub enum RadianceEvent {
     Identify(Identify),
+    PresenceUpdate(PresenceUpdate),
     Ready(Ready),
     ReadySupplemental(ReadySupplemental),
     SessionsReplace(Vec<Session>),
