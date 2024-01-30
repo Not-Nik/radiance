@@ -4,10 +4,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-pub mod identify;
-mod models;
+mod identify;
+pub mod models;
+mod ready;
+mod ready_supplemental;
 
-use crate::events::identify::Identify;
+pub use identify::*;
+pub use ready::*;
+pub use ready_supplemental::*;
+
 use serde::ser::SerializeStruct;
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -17,6 +22,8 @@ use twilight_model::gateway::OpCode;
 #[derive(Clone, Debug, PartialEq)]
 pub enum RadianceEvent {
     Identify(Identify),
+    Ready(Ready),
+    ReadySupplemental(ReadySupplemental),
     Twilight(Event),
 }
 
@@ -120,6 +127,8 @@ impl Serialize for EventPayload {
             }?;
         } else {
             match &self.d {
+                Some(RadianceEvent::Ready(r)) => state.serialize_field("d", r)?,
+                Some(RadianceEvent::ReadySupplemental(r)) => state.serialize_field("d", r)?,
                 None => {}
                 _ => unreachable!(),
             }

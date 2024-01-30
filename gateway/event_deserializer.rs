@@ -4,8 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-use crate::events::identify::Identify;
-use crate::events::RadianceEvent;
+use crate::events::{Identify, RadianceEvent};
 use serde::de::value::U8Deserializer;
 use serde::de::{
     DeserializeSeed, Error, IgnoredAny, IntoDeserializer, MapAccess, Unexpected, Visitor,
