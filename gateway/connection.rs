@@ -6,9 +6,13 @@
 
 use crate::encoding::Encoding;
 use crate::error::GatewayError;
-use crate::events::EventPayload;
+use crate::event_deserializer::EventDeserializer;
+use crate::events::{EventPayload, RadianceEvent};
+use eetf::{Binary, Term};
 use flate2::{Compress, Compression, FlushCompress};
-use futures_util::SinkExt;
+use futures_util::{SinkExt, StreamExt};
+use serde::de::DeserializeSeed;
+use std::io::Cursor;
 use warp::ws::Message;
 
 pub struct Compressor {
@@ -79,11 +83,72 @@ impl GatewayConnection {
         }
     }
 
+    pub async fn read_event(&mut self) -> Result<RadianceEvent, GatewayError> {
+        match self.encoding {
+            Encoding::Etf => self.read_event_etf().await,
+            Encoding::Json => self.read_event_json().await,
+        }
+    }
+
     pub async fn send_event(&mut self, event: EventPayload) -> Result<(), GatewayError> {
         match self.encoding {
             Encoding::Etf => self.send_event_etf(event).await,
             Encoding::Json => self.send_event_json(event).await,
         }
+    }
+
+    async fn read_event_common(&mut self) -> Result<Vec<u8>, GatewayError> {
+        let message = self
+            .ws
+            .next()
+            .await
+            .and_then(|r| r.ok())
+            .ok_or(GatewayError::ConnectionClosed)?;
+
+        Ok(message.into_bytes())
+    }
+
+    async fn read_event_json(&mut self) -> Result<RadianceEvent, GatewayError> {
+        let json = String::from_utf8(self.read_event_common().await?)
+            .map_err(|_| GatewayError::InvalidEncoding)?;
+
+        let deserializer =
+            EventDeserializer::from_json(&*json).ok_or(GatewayError::InvalidEncoding)?;
+        let mut json_deserializer = serde_json::Deserializer::from_str(&*json);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        Ok(event)
+    }
+
+    async fn read_event_etf(&mut self) -> Result<RadianceEvent, GatewayError> {
+        let etf = self.read_event_common().await?;
+
+        let Term::Map(term) =
+            Term::decode(Cursor::new(&etf)).map_err(|_| GatewayError::InvalidEncoding)?
+        else {
+            Err(GatewayError::IncompleteData)?
+        };
+
+        let op_term = Term::Binary(Binary::from("op".as_bytes()));
+        let event_type_term = Term::Binary(Binary::from("t".as_bytes()));
+
+        let Term::FixInteger(op) = term.map.get(&op_term).ok_or(GatewayError::IncompleteData)?
+        else {
+            Err(GatewayError::IncompleteData)?
+        };
+
+        let event_type_string = term.map.get(&event_type_term).and_then(|t| match t {
+            Term::Atom(a) => Some(a.name.clone()),
+            _ => None,
+        });
+
+        let event_type = event_type_string.as_ref().map(|s| s.as_str());
+
+        let deserializer = EventDeserializer::new(op.value as u8, event_type);
+        let etf_deserializer = serde_etf::Deserializer::from_term(Term::Map(term));
+        let event = deserializer.deserialize(etf_deserializer).unwrap();
+
+        Ok(event)
     }
 
     async fn send_event_common(&mut self, payload: Vec<u8>) -> Result<(), GatewayError> {

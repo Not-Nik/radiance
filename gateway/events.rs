@@ -4,6 +4,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+pub mod identify;
+mod models;
+
+use crate::events::identify::Identify;
 use serde::ser::SerializeStruct;
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -12,6 +16,7 @@ use twilight_model::gateway::OpCode;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum RadianceEvent {
+    Identify(Identify),
     Twilight(Event),
 }
 

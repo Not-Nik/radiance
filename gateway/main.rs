@@ -9,12 +9,13 @@
 mod connection;
 mod encoding;
 mod error;
+mod event_deserializer;
 mod events;
 
 use crate::connection::GatewayConnection;
 use crate::encoding::Encoding;
 use crate::error::GatewayError;
-use crate::events::IntoPayload;
+use crate::events::{IntoPayload, RadianceEvent};
 use log::debug;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -74,6 +75,12 @@ async fn failing_gateway(mut connection: GatewayConnection) -> Result<(), Gatewa
         .await?;
 
     debug!("Sent hello");
+
+    let RadianceEvent::Identify(identify) = connection.read_event().await? else {
+        return Err(GatewayError::UnexpectedPayload);
+    };
+
+    debug!("Received identify {:#?}", identify);
 
     Ok(())
 }
