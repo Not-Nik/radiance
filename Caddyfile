@@ -1,0 +1,9 @@
+discord.com {
+	tls certs/cert.rest.pem certs/key.rest.pem
+	reverse_proxy https://127.0.0.1:4433
+}
+
+gateway.discord.gg {
+	tls certs/cert.gateway.pem certs/key.gateway.pem
+	reverse_proxy https://127.0.0.1:4434
+}

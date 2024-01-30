@@ -1,5 +1,7 @@
 /target
 /.idea
 
-certs/cert.pem
-certs/key.pem
+certs/cert.gateway.pem
+certs/key.gateway.pem
+certs/cert.rest.pem
+certs/key.rest.pem

@@ -68,8 +68,8 @@ async fn main() {
 
     warp::serve(warp::get().and(updates_stable).or(routes))
         .tls()
-        .cert_path("certs/cert.pem")
-        .key_path("certs/key.pem")
-        .run(([0, 0, 0, 0], 443))
+        .cert_path("certs/cert.rest.pem")
+        .key_path("certs/key.rest.pem")
+        .run(([0, 0, 0, 0], 4433))
         .await;
 }

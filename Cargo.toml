@@ -19,3 +19,7 @@ warp = { version = "0.3", features = ["tls"] }
 [[bin]]
 name = "rest"
 path = "rest/main.rs"
+
+[[bin]]
+name = "gateway"
+path = "gateway/main.rs"
