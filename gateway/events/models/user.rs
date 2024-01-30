@@ -32,5 +32,5 @@ pub struct User {
     pub pronouns: String,
     pub purchased_flags: i64,
     pub username: String,
-    pub verified: bool,
+    pub verified: bool, // email verified
 }

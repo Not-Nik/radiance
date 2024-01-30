@@ -160,7 +160,7 @@ async fn failing_gateway(mut connection: GatewayConnection) -> Result<(), Gatewa
             pronouns: "".to_string(),
             purchased_flags: 0,
             username: "Person".to_string(),
-            verified: false,
+            verified: true,
         },
         user_guild_settings: UserGuildSettings {
             entries: vec![],
@@ -217,6 +217,4 @@ async fn failing_gateway(mut connection: GatewayConnection) -> Result<(), Gatewa
             }
         };
     }
-
-    Ok(())
 }

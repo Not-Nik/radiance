@@ -8,10 +8,12 @@ mod identify;
 pub mod models;
 mod ready;
 mod ready_supplemental;
+mod voice_state_update;
 
 pub use identify::*;
 pub use ready::*;
 pub use ready_supplemental::*;
+pub use voice_state_update::*;
 
 use models::Session;
 use serde::ser::SerializeStruct;
@@ -27,6 +29,7 @@ pub enum RadianceEvent {
     ReadySupplemental(ReadySupplemental),
     SessionsReplace(Vec<Session>),
     Twilight(Event),
+    VoiceStateUpdate(VoiceStateUpdate),
 }
 
 // Serialize is implemented below, because Event doesn't directly implement it
