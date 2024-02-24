@@ -18,13 +18,13 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use warp::Filter;
 
-const OSX_VERSION: Version = Version::new(0, 0, 293);
-const OSX_PUB_DATE: &'static str = "2024-01-29T19:58:18";
+const OSX_VERSION: Version = Version::new(0, 0, 295);
+const OSX_PUB_DATE: &'static str = "2024-02-20T21:45:24";
 const WIN_VERSION: Version = Version::new(0, 0, 311);
 // This seems wrong, maybe they are using a different name for windows now, or maybe they're just lazy
 const WIN_PUB_DATE: &'static str = "2021-09-22T18:16:06";
-const LINUX_VERSION: Version = Version::new(0, 0, 42);
-const LINUX_PUB_DATE: &'static str = "2024-01-29T19:49:27";
+const LINUX_VERSION: Version = Version::new(0, 0, 43);
+const LINUX_PUB_DATE: &'static str = "2024-02-12T21:18:51";
 
 const VERSION_MAP: Lazy<EnumMap<Platform, (Version, &'static str)>> = Lazy::new(|| {
     enum_map! {
