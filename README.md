@@ -15,6 +15,7 @@ Add the following to `/etc/hosts`:
 
 ```
 127.0.0.1 discord.com
+127.0.0.1 gateway.discord.gg
 ```
 
 Flush your DNS cache, if applicable. Generate the needed certificates in `certs` with these commands:
@@ -36,6 +37,8 @@ Add the certificate to your trusted certificates:
 sudo security add-trusted-cert -d -p ssl -p basic -k /Library/Keychains/System.keychain cert.rest.pem
 sudo security add-trusted-cert -d -p ssl -p basic -k /Library/Keychains/System.keychain cert.gateway.pem
 ```
+
+Run Caddy with `caddy run` and start both the rest and gateway servers.
 
 ## Copyright notices
 
