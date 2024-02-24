@@ -22,7 +22,7 @@ pub async fn forward(
 ) -> Result<impl warp::Reply, Infallible> {
     // Force client to resolve discord.com to external address, ignoring /etc/hosts
     let client = ClientBuilder::new()
-        .resolve_to_addrs("discord.com", &*discord)
+        .resolve_to_addrs("discord.com", discord.as_slice())
         .build()
         .unwrap();
 
@@ -31,8 +31,9 @@ pub async fn forward(
     // Forward asset files (and /app)
     if path.ends_with(".js")
         || path.ends_with(".json")
-        || path.ends_with(".css")
         || path.ends_with(".png")
+        || path.ends_with(".svg")
+        || path.ends_with(".css")
         || path == "/app"
     {
         debug!("Fetching {} from discord.com", path);
